@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.List;
 
 /*
@@ -14,7 +15,61 @@ public class App {
 
     public String bestCharge(List<String> inputs) {
         //TODO: write code here
+        int total = 0;
 
-        return null;
+
+        List<Item> itemTmp = itemRepository.findAll();
+        List<SalesPromotion> sales = salesPromotionRepository.findAll();
+        int totalPrice[] = new int[2];
+        ArrayList<String> discountItem = new ArrayList<>();
+
+        StringBuilder resultStr = new StringBuilder("============= 订餐明细 =============\n");
+        for (String x : inputs) {
+            String tmp[] = x.split(" ");
+            for (Item i: itemTmp) {
+                if(i.getId().equals(tmp[0])) {
+                    for (String s: sales.get(1).getRelatedItems()) {
+                        if(s.equals(tmp[0])){
+                            totalPrice[0] -= (i.getPrice() * Integer.parseInt(tmp[2]))/2;
+                            discountItem.add(i.getName());
+                        }
+                    }
+
+                    total += (i.getPrice() * Integer.parseInt(tmp[2]));
+                    totalPrice[0] += (i.getPrice() * Integer.parseInt(tmp[2]));
+                    resultStr.append(String.format("%s x %s = %d元\n", i.getName(), tmp[2], (int) (i.getPrice() * Integer.parseInt(tmp[2]))));
+                }
+            }
+
+        }
+
+
+        if(total>=30)
+            totalPrice[1] = total-6;
+        else
+            totalPrice[1] = total;
+
+        if(totalPrice[0]<totalPrice[1]){
+            resultStr.append("-----------------------------------\n使用优惠:\n指定菜品半价(");
+            for(int i = 0;i<discountItem.size();i++){
+                resultStr.append(discountItem.get(i));
+                if(i != discountItem.size()-1)
+                    resultStr.append("，");
+
+            }
+            resultStr.append(String.format(")，省%d元\n", total - totalPrice[0]));
+            total = totalPrice[0];
+
+        }
+        if(totalPrice[0]>totalPrice[1]){
+            resultStr.append("-----------------------------------\n" + "使用优惠:\n" + "满30减6元，省6元\n");
+            total = totalPrice[1];
+        }
+
+        resultStr.append("-----------------------------------");
+        resultStr.append(String.format("\n总计：%d元\n===================================", total));
+
+
+        return resultStr.toString();
     }
 }
